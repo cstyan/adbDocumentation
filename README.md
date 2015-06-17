@@ -7,28 +7,28 @@ ADB (Android Debug Bridge) and it's protocol is what you're computer uses to com
 Hopefully this document will clear up the lack of actual documentation and details regarding the implementation of the ADB protocol.
 
 ## Packet Format
-ADB packets, they kind of suck.
->   unsigned command;       /* command identifier constant        */
-    unsigned arg0;          /* first argument                   */
-    unsigned arg1;          /* second argument                  */
-    unsigned data_length;   /* length of payload (0 is allowed) */
-    unsigned data_crc32;    /* crc32 of data payload            */
+ADB packets, they kind of suck.  
+>   unsigned command;       /* command identifier constant        */  
+    unsigned arg0;          /* first argument                   */  
+    unsigned arg1;          /* second argument                  */  
+    unsigned data_length;   /* length of payload (0 is allowed) */  
+    unsigned data_crc32;    /* crc32 of data payload            */  
     unsigned magic;         /* command ^ 0xffffffff             */
+    
+First argument, second argument? Okay, I guess there is no point in having tons of fields with `null` values for half depending on the type of command we're sending.  
 
-First argument, second argument? Okay, I guess there is no point in having tons of fields with `null` values for half depending on the type of command we're sending.
-
-But where is the data you ask?  I don't even know.
+But where is the data you ask?  I don't even know. 
 
 Since the CONNECT message is supposed to have a format of `CONNECT(version, maxdata, "system-identity-string")`, you'd think it's safe to assume that since the packet has the `data_length` and `data_crc32`, that you can just append the actual data to the end of your node buffer / horrible C array, but no.  You can't.
-`¯\_(ツ)_/¯`
-See the packet capture images in the next section to see how you have to send data over USB to have ADB not die on you.
+`¯\_(ツ)_/¯`  
+See the packet capture images in the next section to see how you have to send data over USB to have ADB not die on you.  
 
 **NOTE:** You might be able to do the whole append *"data to the end of the packet as usual"* thing if you're using the ADB protocol over TCP.  As an [example](https://github.com/sidorares/node-adbhost), Andrey seems to be able to do this just fine over TCP.
 
 ##Packet Captures
-To prove to you that I'm not lying here's some hexdumps of the packet capture I did to actually figure out how this thing works.
+To prove to you that I'm not lying here's some hexdumps of the packet capture I did to actually figure out how this thing works. 
 
-First, the whole packet + data structure that totally makes sense and should work:
+First, the whole packet + data structure that totally makes sense and should work: 
 ![adb](https://github.com/cstyan/adbDocumentation/raw/master/images/cnxnHost.png)
 Here you can see both the `CNXN` command as well as the `host::` string for the "system-identity" portion of our connection request.  But when you send this you never get a response from the device you sent to.
 
@@ -39,7 +39,7 @@ Here's what Googles own implementation of ADB does:
 To go from a state of `no connection established` to `you have an adb shell into your device` is about 40 USB packets. Efficiency!
 
 ## Handshake
-Most protocols that are connection oriented have a handshake and actual documentation of their handshake process, such as [TCP](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Connection_establishment).  Unfortunately ADB does not, thanks Google.
+Most protocols that are connection oriented have a handshake and actual documentation of their handshake process, such as [TCP](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Connection_establishment).  Unfortunately ADB does not, thanks Google.  
 
 But really, are you surprised?
 
