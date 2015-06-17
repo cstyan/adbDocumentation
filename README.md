@@ -53,7 +53,7 @@ According to the documnetation in that wonderful `protocol.txt` file:
 established.  Until a CONNECT message is received no other messages may
 be sent.  Any messages received before a CONNECT message MUST be ignored.
 
-That's really useful, we now totally know who needs to initiate the connection by sending a CONNECT message first right?  We also know that the devices response to our CONNECT message is going to be an AUTH message if the device is running Android 4.4 or higher, because that's clearly documented as part of the protocol.
+That's really useful, we now totally know who needs to initiate the connection by sending a CONNECT message first right?  We also know that the devices response to our CONNECT message is going to be an AUTH message if the device is running Android 4.4 or higher, because that's clearly documented as part of the protocol. :angry: 
 
 So the actual handshake to get connected to a device, so you're in a state where you could run `adb shell` if you wanted, is as follows:
 
