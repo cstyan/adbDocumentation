@@ -33,9 +33,9 @@ First, the whole packet + data structure that totally makes sense and should wor
 ![adb](https://github.com/cstyan/adbDocumentation/raw/master/images/cnxnHost.png)  
 Here you can see both the `CNXN` command as well as the `host::` string for the "system-identity" portion of our connection request.  But when you send this you never get a response from the device you sent to.
 
-Here's what Googles own implementation of ADB does:
-1. The CNXN command ![cnxn](https://github.com/cstyan/adbDocumentation/raw/master/images/googleCNXN.jpg) Notice that the 8 bytes are the same as the bytes previous to the `host::` bytes in the last hex dump.  This is from the `data_length` and `data_crc32` fields being set based on wanting to send `host::` as our data.
-2. The "host::" system-identity string ![host](https://github.com/cstyan/adbDocumentation/raw/master/images/googleHost.png) ^ there's our actual data payload.  So you have to send twice for every command.  Such overhead, many packets!
+Here's what Googles own implementation of ADB does:   
+1. The CNXN command ![cnxn](https://github.com/cstyan/adbDocumentation/raw/master/images/googleCNXN.jpg) Notice that the 8 bytes are the same as the bytes previous to the `host::` bytes in the last hex dump.  This is from the `data_length` and `data_crc32` fields being set based on wanting to send `host::` as our data.  
+2. The "host::" system-identity string ![host](https://github.com/cstyan/adbDocumentation/raw/master/images/googleHost.png)   ^ there's our actual data payload.  So you have to send twice for every command.  Such overhead, many packets!
 
 To go from a state of `no connection established` to `you have an adb shell into your device` is about 40 USB packets. Efficiency!
 
