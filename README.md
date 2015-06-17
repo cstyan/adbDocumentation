@@ -35,8 +35,8 @@ Here you can see both the `CNXN` command as well as the `host::` string for the 
 
 ---
 
-Here's what Googles own implementation of ADB does.  
-  
+Here's what Googles own implementation of ADB does:  
+ 
 1. The CNXN command ![cnxn](https://github.com/cstyan/adbDocumentation/raw/master/images/googleCNXN.jpg) Notice that the 8 bytes are the same as the bytes previous to the `host::` bytes in the last hex dump.  This is from the `data_length` and `data_crc32` fields being set based on wanting to send `host::` as our data.    
 2. The `host::` system-identity string ![host](https://github.com/cstyan/adbDocumentation/raw/master/images/googleHost.png)  
 ^ there's our actual data payload.  So you have to send twice for every command.  Such overhead, many packets!
@@ -55,12 +55,16 @@ be sent.  Any messages received before a CONNECT message MUST be ignored.
 
 That's really useful, we now totally know who needs to initiate the connection by sending a CONNECT message first right?  We also know that the devices response to our CONNECT message is going to be an AUTH message if the device is running Android 4.4 or higher, because that's clearly documented as part of the protocol.
 
-1. Test
-2. List
-
 So the actual handshake to get connected to a device, so you're in a state where you could run `adb shell` if you wanted, is as follows:
-1. Test
-2. List
+
+1. We send a CONNECT message to the device
+2. We send our system-information string to the device
+3. The device sends you an AUTH messagea
+4. The device sends you the token you can sign
+5. Now you have two options
+  1. Sign the token with your private key and send it back with an AUTH type 2 **OR**
+  2. Send the device your public key with an AUTH type 3, this option will open the "trust this computer" prompt on the device.
+6. The device accepts your signed token or public key and sends back it's own CONNECT message
 
 **HOORAY YOU CONNECTED TO A DEVICE** ![shark](https://github.com/cstyan/adbDocumentation/raw/master/images/shark.jpg)
 
