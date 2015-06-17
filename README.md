@@ -5,6 +5,7 @@ ADB (Android Debug Bridge) and it's protocol is what you're computer uses to com
 * [sync](https://android.googlesource.com/platform/system/core/+/master/adb/SYNC.TXT)
 
 Hopefully this document will clear up the lack of actual documentation and details regarding the implementation of the ADB protocol.
+The packet capture I refer to that was captured during a connection sequence using Googles ADB implementation is in this repo under `adbCapture.pcapng`.
 
 ## Packet Format
 ADB packets, they kind of suck.  
