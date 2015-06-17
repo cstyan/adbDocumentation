@@ -30,7 +30,7 @@ See the packet capture images in the next section to see how you have to send da
 To prove to you that I'm not lying here's some hexdumps of the packet capture I did to actually figure out how this thing works. 
 
 First, the whole packet + data structure that totally makes sense and should work: 
-![adb](https://github.com/cstyan/adbDocumentation/raw/master/images/cnxnHost.png)
+![adb](https://github.com/cstyan/adbDocumentation/raw/master/images/cnxnHost.png)  
 Here you can see both the `CNXN` command as well as the `host::` string for the "system-identity" portion of our connection request.  But when you send this you never get a response from the device you sent to.
 
 Here's what Googles own implementation of ADB does:
