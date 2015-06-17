@@ -19,8 +19,9 @@ First argument, second argument? Okay, I guess there is no point in having tons 
 
 But where is the data you ask?  I don't even know. 
 
-Since the CONNECT message is supposed to have a format of `CONNECT(version, maxdata, "system-identity-string")`, you'd think it's safe to assume that since the packet has the `data_length` and `data_crc32`, that you can just append the actual data to the end of your node buffer / horrible C array, but no.  You can't.
-`¯\_(ツ)_/¯`  
+Since the CONNECT message is supposed to have a format of `CONNECT(version, maxdata, "system-identity-string")`, you'd think it's safe to assume that since the packet has the `data_length` and `data_crc32`, that you can just append the actual data to the end of your node buffer / horrible C array.  
+But no, you can't. `¯\_(ツ)_/¯`  
+
 See the packet capture images in the next section to see how you have to send data over USB to have ADB not die on you.  
 
 **NOTE:** You might be able to do the whole append *"data to the end of the packet as usual"* thing if you're using the ADB protocol over TCP.  As an [example](https://github.com/sidorares/node-adbhost), Andrey seems to be able to do this just fine over TCP.
