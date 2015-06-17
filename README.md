@@ -65,6 +65,33 @@ So the actual handshake to get connected to a device, so you're in a state where
   1. Sign the token with your private key and send it back with an AUTH type 2 **OR**
   2. Send the device your public key with an AUTH type 3, this option will open the "trust this computer" prompt on the device.
 6. The device accepts your signed token or public key and sends back it's own CONNECT message
+7. Device sends some information about itself
 
 **HOORAY YOU CONNECTED TO A DEVICE** ![shark](https://github.com/cstyan/adbDocumentation/raw/master/images/shark.jpg)
 
+You can now send normal messages to your device.
+
+## Sending Messages
+After that handshake business we can start doing other things, like opening a shell on the device.
+
+Command type OPEN lets you open another stream into the device, in this case we're opening a shell stream.  
+Command type WRTE is for sending any old data across as part of that stream.
+
+The documentation doesn't like to be consistent, and defines a message type of READY, but the string you send 
+as the COMMAND field of the packet is OKAY.
+I'm going to refer to this as an OKAY message.  If we're sending OPEN/WRTE then we must wait for a response of OKAY
+before it can send again, otherwise the device will disconnect from us because this protocol handles the receiving of
+out-of-order data gracefully.
+
+So, if we want to open a shell after the handshake we would have another flow that's something like:
+
+1. We send OPEN message to device
+2. We send shell string to device
+3. Device sends OKAY message back to us
+4. Device sends WRTE message to us
+5. Device sends as string that's the shells terminal prompt
+6. We send OKAY to the device
+
+**HOORAY YOU OPENED A SHELL INTO A DEVICE** ![shark](https://github.com/cstyan/adbDocumentation/raw/master/images/shark.jpg)
+
+Now you can do cool things like `rm -rf /`.
