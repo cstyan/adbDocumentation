@@ -54,7 +54,7 @@ According to the documnetation in that wonderful `protocol.txt` file:
 established.  Until a CONNECT message is received no other messages may
 be sent.  Any messages received before a CONNECT message MUST be ignored.
 
-That's really useful, we now totally know who needs to initiate the connection by sending a CONNECT message first right?  We also know that the devices response to our CONNECT message is going to be an AUTH message if the device is running Android 4.4 or higher, because that's clearly documented as part of the protocol. :angry: 
+That's really useful, it's clear who needs to initiate the connection by sending a CONNECT message first right?  It's also clear that the device's response to our CONNECT message is going to be an AUTH message if the device is running Android 4.4 or higher, because that's clearly documented as part of the protocol. :angry: 
 
 So the actual handshake to get connected to a device, so you're in a state where you could run `adb shell` if you wanted, is as follows:
 
@@ -67,8 +67,6 @@ So the actual handshake to get connected to a device, so you're in a state where
   2. Send the device your public key with an AUTH type 3, this option will open the "trust this computer" prompt on the device.
 6. The device accepts your signed token or public key and sends back it's own CONNECT message
 7. Device sends some information about itself
-
-**HOORAY YOU CONNECTED TO A DEVICE** ![shark](https://github.com/cstyan/adbDocumentation/raw/master/images/shark.jpg)
 
 You can now send normal messages to your device.
 
@@ -97,7 +95,3 @@ Note that the end of whatever string you're sending the device as part of an OPE
 message seems to require a `.` at the end of the string.  As an example, if we
 wanted to send a `shell ls` command, the data payload as part of our OPEN message
 needs to be `shell:ls.`.
-
-**HOORAY YOU OPENED A SHELL INTO A DEVICE** ![shark](https://github.com/cstyan/adbDocumentation/raw/master/images/shark.jpg)
-
-Now you can do cool things like `rm -rf /`.
