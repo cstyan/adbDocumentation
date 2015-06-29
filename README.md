@@ -93,6 +93,11 @@ So, if we want to open a shell after the handshake we would have another flow th
 5. Device sends as string that's the shells terminal prompt
 6. We send OKAY to the device
 
+Note that the end of whatever string you're sending the device as part of an OPEN
+message seems to require a `.` at the end of the string.  As an example, if we
+wanted to send a `shell ls` command, the data payload as part of our OPEN message
+needs to be `shell:ls.`.
+
 **HOORAY YOU OPENED A SHELL INTO A DEVICE** ![shark](https://github.com/cstyan/adbDocumentation/raw/master/images/shark.jpg)
 
 Now you can do cool things like `rm -rf /`.
