@@ -95,3 +95,62 @@ Note that the end of whatever string you're sending the device as part of an OPE
 message seems to require a `.` at the end of the string.  As an example, if we
 wanted to send a `shell ls` command, the data payload as part of our OPEN message
 needs to be `shell:ls.`.
+
+## Undocumented Commands
+Besides the 7 command types listed in the documentation for ADB there are a number of
+undocumented command types.  You can think of these as sub commands, as they come as
+the data payload for another command.  These sub commands are used to signal the device 
+about the next thing we want to do, or information we want it to send us.
+
+For example say we want to use the `adb push` command, the protocol nests STAT
+and SEND within WRTE commands during the transfer of the data, and our host machine
+will nest a QUIT inside a final WRTE in order to signal the end of the transfer.
+The `adb pull` command works similar except that there is a RECV nested inside a WRITE
+rather than a SEND, we also recv a DATA + file data inside of another WRTE.
+
+The STAT sub command is used to get file attributes, more info is available 
+[here](http://blogs.kgsoft.co.uk/2013_03_15_prg.htm).
+```
+typedef struct _rf_stat__ 
+{
+    unsigned id;    // ID_STAT('S' 'T' 'A' 'T')
+    unsigned mode;
+    unsigned size;
+    unsigned time;
+} FILE_STAT;
+```
+
+The flow of an `adb pull file` command is as follows:
+
+1. We send OPEN message to device
+2. We send sync: to the device 
+* sync: is related flushing on the device *
+3. Device sends us OKAY
+4. We send WRTE message to device
+5. We send STAT to the device
+6. Device sends us OKAY
+7. We send WRTE to device
+8. We send full path of file we want to pull * sdcard/someFile.txt *
+9. Device sends us OKAY
+10. We send WRTE to device
+11. We send STAT to the device, this contains some more data but I'm not sure
+what the data actually is.  The link above seems to suggest the data would be
+the size of the filename among other things, but it doesn't make sense to send
+the size of the filename after we've already sent the filename.
+12. Device sends us OKAY
+13. We send WRTE message to device
+14. We send RECV message to device
+15. Device sends us OKAY
+16. We send WRTE to the device
+17. We send the path of the file we want again * sdcard/someFile.txt *
+18. Device sends us OKAY
+19. Device sends us WRTE
+20. Device sends us DATA + data length + the file data, if the file is more than 
+65k there will be multiple DATA messages.  The last DATA message will be 
+terminated with DONE after the file data portion of the payload.
+21. We send the device OKAY after each DATA message
+22. At the end of the data transfer we send WRTE to the device
+23. We send QUIT message to device
+24. Device sends us OKAY
+25. We send CLSE message to device
+26. Device sends us CLSE
