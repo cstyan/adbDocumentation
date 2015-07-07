@@ -108,8 +108,8 @@ will nest a QUIT inside a final WRTE in order to signal the end of the transfer.
 The `adb pull` command works similar except that there is a RECV nested inside a WRITE
 rather than a SEND, we also recv a DATA + file data inside of another WRTE.
 
-The STAT sub command is used to get file attributes, more info is available 
-[here](http://blogs.kgsoft.co.uk/2013_03_15_prg.htm).
+The STAT sub command is used to get file attributes.  More info about the next
+section is available [here](http://blogs.kgsoft.co.uk/2013_03_15_prg.htm).
 ```
 typedef struct _rf_stat__ 
 {
@@ -146,7 +146,7 @@ the size of the filename after we've already sent the filename.
 18. Device sends us OKAY
 19. Device sends us WRTE
 20. Device sends us DATA + data length + the file data, if the file is more than 
-65k there will be multiple DATA messages.  The last DATA message will be 
+65k there will be multiple DATA messages.  The last file data transfer will be 
 terminated with DONE after the file data portion of the payload.
 21. We send the device OKAY after each DATA message
 22. At the end of the data transfer we send WRTE to the device
