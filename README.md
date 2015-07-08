@@ -172,16 +172,15 @@ typedef struct _rf_stat__
 15. Device sends us OKAY
 16. We send WRTE to device
 17. We send string about the file we're sending `sdcard/testFile.txt,XXXXX,DATAnnnnTheFileData`  
+
 This string can be confusing at first glance, to clarify, the format is:
 full file path, the mode of the file in decimal (0644 becomes 33188),
-`DATAnnnnTheFileData`  
-
-Where nnnn is the size of the file sending, each n is one byte.  If your file is
-larger than 64k bits you just need to keep sending WRTE followed by another `DATA
-nnnnFileData` until you've sent all the file data. When we're sending the the 
-packet containing the last of the file data we append `DONEnnnn` to the end of 
-the packet, where `nnnn` is the creation time we want the file to have on the
-device.  
+`DATAnnnnTheFileData` where nnnn is the size of the file sending, each n is one 
+byte.  If your file is larger than 64k bits you just need to keep sending WRTE 
+followed by another `DATA nnnnFileData` until you've sent all the file data. 
+When we're sending the the packet containing the last of the file data we append 
+`DONEnnnn` to the end of the packet, where `nnnn` is the creation time we want 
+the file to have on the device.  
 
 18. Device sends us OKAY ~ NOTE: here were assuming we just sent a data packet 
 that also contained DONE, indicating we've sent all the data.~
