@@ -136,6 +136,8 @@ undocumented command types.  You can think of these as sub commands, as they com
 the data payload for another command.  These sub commands are used to signal the device 
 about the next thing we want to do, or information we want it to send us.
 
+The sub commands include: SEND, RECV, STAT, QUIT
+
 For example say we want to use the `adb push` command, the protocol nests STAT
 and SEND within WRTE commands during the transfer of the data, and our host machine
 will nest a QUIT inside a final WRTE in order to signal the end of the transfer.
