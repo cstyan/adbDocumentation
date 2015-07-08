@@ -93,8 +93,8 @@ you could run `adb shell` if you wanted, is as follows:
 3. The device sends you an AUTH messagea
 4. The device sends you the token you can sign
 5. Now you have two options
-  1. Sign the token with your private key and send it back with an AUTH type 2 **OR**
-  2. Send the device your public key with an AUTH type 3, this option will open 
+  - Sign the token with your private key and send it back with an AUTH type 2 **OR**
+  - Send the device your public key with an AUTH type 3, this option will open 
   the "trust this computer" prompt on the device.
 6. The device accepts your signed token or public key and sends back it's own CONNECT message
 7. Device sends some information about itself
