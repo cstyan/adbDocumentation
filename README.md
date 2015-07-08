@@ -180,8 +180,7 @@ typedef struct _rf_stat__
     followed by another `DATA nnnnFileData` until you've sent all the file data. 
     - When we're sending the the packet containing the last of the file data we append 
     `DONEnnnn` to the end of the packet, where `nnnn` is the creation time we want 
-    the file to have on the device.  
-
+    the file to have on the device. 
 18. Device sends us OKAY ~ NOTE: here were assuming we just sent a data packet 
 that also contained DONE, indicating we've sent all the data.~
 19. Device sends us WRTE
