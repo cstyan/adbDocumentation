@@ -156,7 +156,7 @@ typedef struct _rf_stat__
 
 ## ADB Push
 1. We send OPEN message to device
-2. We send sync: to the device * sync: is related flushing on the device *
+2. We send sync: to the device `sync: is related flushing on the device`
 3. Device sends us OKAY
 4. We send WRTE message to device
 5. We send STAT to the device
@@ -175,14 +175,16 @@ typedef struct _rf_stat__
 This string can be confusing at first glance, to clarify, the format is:
 full file path, the mode of the file in decimal (0644 becomes 33188),
 `DATAnnnnTheFileData`  
+
 Where nnnn is the size of the file sending, each n is one byte.  If your file is
 larger than 64k bits you just need to keep sending WRTE followed by another `DATA
 nnnnFileData` until you've sent all the file data. When we're sending the the 
 packet containing the last of the file data we append `DONEnnnn` to the end of 
 the packet, where `nnnn` is the creation time we want the file to have on the
 device.  
-18. Device sends us OKAY * NOTE: here were assuming we just sent a data packet 
-that also contained `DONE~, indicating we've sent all the data. *
+
+18. Device sends us OKAY ~ NOTE: here were assuming we just sent a data packet 
+that also contained DONE, indicating we've sent all the data.~
 19. Device sends us WRTE
 20. Device sends us OKAY
 21. We send OKAY to device
@@ -193,7 +195,8 @@ that also contained `DONE~, indicating we've sent all the data. *
 26. Device sends us CLSE
 
 ## ADB Pull
-The flow of an ADB pull starts of like the pull flow up until step 8:
+The flow of an ADB pull starts of like the pull flow up until step 8:  
+
 8. We send full path of file we want to pull * sdcard/someFile.txt *
 9. Device sends us OKAY
 10. We send WRTE to device
