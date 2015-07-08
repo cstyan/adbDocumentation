@@ -156,8 +156,7 @@ typedef struct _rf_stat__
 
 ## ADB Push
 1. We send OPEN message to device
-2. We send sync: to the device 
-* sync: is related flushing on the device *
+2. We send sync: to the device * sync: is related flushing on the device *
 3. Device sends us OKAY
 4. We send WRTE message to device
 5. We send STAT to the device
