@@ -2,38 +2,68 @@
 ADB (Android Debug Bridge) and it's protocol is what you're computer uses to 
 communicate with Android devices.  The protocol itself is an 
 [application layer](https://en.wikipedia.org/wiki/Application_layer) protocol, 
-which can sit inside TCP or USB.  Googles documentation for the protocol and 
-processes that use it can be found in their ADB code repository as **text** files:
+which can sit inside TCP or USB.  The AOSP (Android Open Source Project) 
+documentation for the protocol and processes that use it can be found in their 
+ADB code repository as **text** files:
 * [protocol](https://android.googlesource.com/platform/system/core/+/master/adb/protocol.txt)
 * [ADB overview](https://android.googlesource.com/platform/system/core/+/master/adb/OVERVIEW.TXT)
 * [sync](https://android.googlesource.com/platform/system/core/+/master/adb/SYNC.TXT)
+
+The issue with the documentation provided by the AOSP is that it's severely lacking
+in details about certain procedures necessarry to implementing the protocol.  These
+details are things anyone familiar with common network protocols would expect to
+see in the documentation of a protocol.
+
+For example:  The documentation regarding making a connection to the device consists
+of
+> Both sides send a CONNECT message when the connection between them is
+  established.  Until a CONNECT message is received no other messages may
+  be sent.  Any messages received before a CONNECT message MUST be ignored.
+
+This is not nearly enough information for us to perform the handshake required to
+connect to a device, we don't know who sends CONNECT first.  It also doesn't make
+mention of the AUTH portion of the handshake, which is required as of Android 4.4.
 
 Hopefully this document will clear up the lack of actual documentation and 
 details regarding the implementation of the ADB protocol.
 The packet capture I refer to that was captured during a connection sequence 
 using Googles ADB implementation is in this repo under `adbCapture.pcapng`.
 
+My aim is for this document to eventually be a suitable replacement for other
+documentation out there about the ADB protocol
+
+NOTE: The majority of the information presented is for use of the ADB protocol
+with USB.  If you have information about it's use with TCP please submit a
+pull request. :simple_smile:
+
 ## Packet Format
 ADB packets, they kind of suck.  
->   unsigned command;       /* command identifier constant        */  
-    unsigned arg0;          /* first argument                   */  
-    unsigned arg1;          /* second argument                  */  
-    unsigned data_length;   /* length of payload (0 is allowed) */  
-    unsigned data_crc32;    /* crc32 of data payload            */  
-    unsigned magic;         /* command ^ 0xffffffff             */
+> unsigned command;       /* command identifier constant        */  
+  unsigned arg1;          /* first argument                   */  
+  unsigned arg2;          /* second argument                  */  
+  unsigned data_length;   /* length of payload (0 is allowed) */  
+  unsigned data_crc32;    /* crc32 of data payload            */  
+  unsigned magic;         /* command ^ 0xffffffff             */
     
-First argument, second argument? Okay, I guess there is no point in having tons of fields with `null` values for half depending on the type of command we're sending.  
+First argument, second argument? Okay, I guess there is no point in having tons 
+of fields with `null` values for half depending on the type of command we're sending.
+This makes sense due to the limited size of USB packet, but having different 
+possible meanings for the value of `arg1` and `arg2` based on what type of 
+`command` we're sending can be frustrating.
 
-But where is the data you ask?  I don't even know. 
+But where is the data you ask?  I don't even know.
+Actually I do.
+
+Because USB packets are limited to 512 bytes, ADB over USB expects to receive an
+ADB packet with the fields listed above, followed by another USB packet with any
+data payload associated with that ADB packet.  Again, there is no mention of this
+in any of the AOSP's ADB documentation.
 
 Since the CONNECT message is supposed to have a format of `CONNECT(version, maxdata, 
 "system-identity-string")`, you'd think it's safe to assume that since the packet 
 has the `data_length` and `data_crc32`, that you can just append the actual data 
 to the end of your node buffer / horrible C array.  
 But no, you can't. `¯\_(ツ)_/¯`  
-
-See the packet capture images in the next section to see how you have to send 
-data over USB to have ADB not die on you.  
 
 **NOTE:** You might be able to do the whole append *"data to the end of the packet 
 as usual"* thing if you're using the ADB protocol over TCP.  As an 
@@ -45,21 +75,21 @@ To prove to you that I'm not lying here's some hexdumps of the packet capture I
 did to actually figure out how this thing works. 
 
 First, the whole packet + data structure that totally makes sense and should work: 
-![adb](https://github.com/cstyan/adbDocumentation/raw/master/images/cnxnHost.png)  
+[adb](https://github.com/cstyan/adbDocumentation/raw/master/images/cnxnHost.png)  
 Here you can see both the `CNXN` command as well as the `host::` string for the 
 "system-identity" portion of our connection request.  But when you send this you 
 never get a response from the device you sent to.  
 
 ---
 
-Here's what Googles own implementation of ADB does:  
+Here's what the AOSP's own implementation of ADB does:  
  
-1. The CNXN command !
+1. The CNXN command
 [cnxn](https://github.com/cstyan/adbDocumentation/raw/master/images/googleCNXN.jpg) 
 Notice that the 8 bytes are the same as the bytes previous to the `host::` bytes 
 in the last hex dump.  This is from the `data_length` and `data_crc32` fields 
 being set based on wanting to send `host::` as our data.    
-2. The `host::` system-identity string !
+2. The `host::` system-identity string
 [host](https://github.com/cstyan/adbDocumentation/raw/master/images/googleHost.png)  
 ^ there's our actual data payload.  So you have to send twice for every command.  
 Such overhead, many packets!
@@ -70,8 +100,8 @@ your device` is about 40 USB packets. Efficiency!
 ## Handshake
 Most protocols that are connection oriented have a handshake and actual 
 documentation of their handshake process, such as 
-[TCP](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Connection_establishment).  Unfortunately ADB does 
-not, thanks Google.  
+[TCP](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Connection_establishment).  
+Unfortunately ADB does not, thanks Google.  
 
 But really, are you surprised?
 
@@ -105,7 +135,8 @@ You can now send normal messages to your device.
 After that handshake business we can start doing other things, like opening a 
 shell on the device.
 
-Command type OPEN lets you open another stream into the device, in this case we're opening a shell stream.  
+Command type OPEN lets you open another stream into the device, in this case 
+we're opening a shell stream.  
 Command type WRTE is for sending any old data across as part of that stream.
 
 The documentation doesn't like to be consistent, and defines a message type of 
@@ -126,23 +157,23 @@ that's something like:
 6. We send OKAY to the device
 
 Note that the end of whatever string you're sending the device as part of an OPEN
-message seems to require a `.` at the end of the string.  As an example, if we
-wanted to send a `shell ls` command, the data payload as part of our OPEN message
-needs to be `shell:ls.`.
+message seems to require a `:` between the type of stream we want to open and the
+rest of the commands string.  As an example, if we wanted to send a `shell ls -al` 
+command, the data payload as part of our OPEN message needs to be `shell:ls -al`.
 
 ## Undocumented Commands
-Besides the 7 command types listed in the documentation for ADB there are a number of
-undocumented command types.  You can think of these as sub commands, as they come as
-the data payload for another command.  These sub commands are used to signal the device 
-about the next thing we want to do, or information we want it to send us.
+Besides the 7 command types listed in the documentation for ADB there are a number 
+of undocumented command types.  You can think of these as sub commands, as they 
+come as the data payload for another command.  These sub commands are used to signal 
+the device about the next thing we want to do, or information we want it to send us.
 
 The sub commands include: SEND, RECV, STAT, QUIT
 
 For example say we want to use the `adb push` command, the protocol nests STAT
 and SEND within WRTE commands during the transfer of the data, and our host machine
 will nest a QUIT inside a final WRTE in order to signal the end of the transfer.
-The `adb pull` command works similar except that there is a RECV nested inside a WRITE
-rather than a SEND, we also recv a DATA + file data inside of another WRTE.
+The `adb pull` command works similar except that there is a RECV nested inside a 
+WRITE rather than a SEND, we also recv a DATA + file data inside of another WRTE.
 
 The STAT sub command is used to get file attributes.  More info about the next
 section is available [here](http://blogs.kgsoft.co.uk/2013_03_15_prg.htm).
