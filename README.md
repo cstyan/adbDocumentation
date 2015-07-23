@@ -197,9 +197,9 @@ typedef struct _rf_stat__
 7. We send WRTE to device
 8. We send the path of where we want to push a file to, `sdcard/testFile.txt`
 9. Device sends us OKAY
-10. We send WRTE to the device
-11. We send STAT to check if the file already exists at the path from step 8
-12. Device sends us OKAY
+10. Device sends us WRTE
+11. Device sends us STAT + some data about the file
+12. We send OKAY to device
 13. We send WRTE to device
 14. We send SEND to device
 15. Device sends us OKAY
