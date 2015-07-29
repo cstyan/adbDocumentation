@@ -63,7 +63,11 @@ Since the CONNECT message is supposed to have a format of `CONNECT(version, maxd
 "system-identity-string")`, you'd think it's safe to assume that since the packet 
 has the `data_length` and `data_crc32`, that you can just append the actual data 
 to the end of your node buffer / horrible C array.  
-But no, you can't. `¯\_(ツ)_/¯`  
+But no, you can't. `¯\_(ツ)_/¯` 
+
+Keep in mind that when you're sending packets in ADB, most fields seem to need to
+be written in little endian byte order as well as read back from the device in
+little endian. 
 
 **NOTE:** You might be able to do the whole append *"data to the end of the packet 
 as usual"* thing if you're using the ADB protocol over TCP.  As an 
@@ -175,8 +179,7 @@ will nest a QUIT inside a final WRTE in order to signal the end of the transfer.
 The `adb pull` command works similar except that there is a RECV nested inside a 
 WRITE rather than a SEND, we also recv a DATA + file data inside of another WRTE.
 
-The STAT sub command is used to get file attributes.  More info about the next
-section is available [here](http://blogs.kgsoft.co.uk/2013_03_15_prg.htm).
+The STAT sub command is used to get file attributes.
 ```
 typedef struct _rf_stat__ 
 {
@@ -187,9 +190,10 @@ typedef struct _rf_stat__
 } FILE_STAT;
 ```
 
+
 ## ADB Push
 1. We send OPEN message to device
-2. We send sync: to the device `sync: is related flushing on the device`
+2. We send sync: to the device `sync: starts a SYNC service `
 3. Device sends us OKAY
 4. We send WRTE message to device
 5. We send STAT to the device
@@ -198,13 +202,22 @@ typedef struct _rf_stat__
 8. We send the path of where we want to push a file to, `sdcard/testFile.txt`
 9. Device sends us OKAY
 10. Device sends us WRTE
-11. Device sends us STAT + some data about the file
+11. Device sends us STAT + some data about the destination we're sending to 
+`sdcard/` 
 12. We send OKAY to device
 13. We send WRTE to device
-14. We send SEND to device
+14. We send SEND to device, note that there is another 4 bytes in the data payload 
+of this packet which is the length of the file destination + name in characters.
+This one is a little annoying, if we're sending to `sdcard//test.py` then the length 
+is 15 characters.  Usually we write the hex equivalent of our payload to the packet
+we're sending, however in this case we need those 4 bytes after SEND to actually
+have the exact number of characters written in little endian byte order.  For this
+example, the hex dump of SEND + the number of characters of in the file name would
+be: 53 45 4e 44 15 00  00 00  
+The ADB protocol is full of inconsistencies, in case you hadn't already noticed.
 15. Device sends us OKAY
 16. We send WRTE to device
-17. We send string about the file we're sending `sdcard/testFile.txt,XXXXX,DATAnnnnTheFileData`  
+17. We send string about the file we're sending `sdcard//testFile.txt,XXXXX,DATAnnnnTheFileData`  
     - This string can be confusing at first glance, to clarify, the format is:
     full file path, the mode of the file in decimal (0644 becomes 33188),
     `DATAnnnnTheFileData` where nnnn is the size of the file sending, each n is one 
