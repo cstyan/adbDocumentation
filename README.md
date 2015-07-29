@@ -8,11 +8,12 @@ ADB code repository as **text** files:
 * [protocol](https://android.googlesource.com/platform/system/core/+/master/adb/protocol.txt)
 * [ADB overview](https://android.googlesource.com/platform/system/core/+/master/adb/OVERVIEW.TXT)
 * [sync](https://android.googlesource.com/platform/system/core/+/master/adb/SYNC.TXT)
+* [services](https://android.googlesource.com/platform/system/core/+/master/adb/SERVICES.TXT)
 
-The issue with the documentation provided by the AOSP is that it's severely lacking
-in details about certain procedures necessarry to implementing the protocol.  These
-details are things anyone familiar with common network protocols would expect to
-see in the documentation of a protocol.
+The issue with the documentation provided by the AOSP is that it's severely 
+lacking in details around the implementation of the protocol.  These details are 
+things anyone familiar with common network protocols would expect to see in the 
+documentation of a protocol.
 
 For example:  The documentation regarding making a connection to the device consists
 of
@@ -21,8 +22,9 @@ of
   be sent.  Any messages received before a CONNECT message MUST be ignored.
 
 This is not nearly enough information for us to perform the handshake required to
-connect to a device, we don't know who sends CONNECT first.  It also doesn't make
-mention of the AUTH portion of the handshake, which is required as of Android 4.4.
+connect to a device, from this it sounds like each side just sends CONNECT endlessly
+until it receives a connect from the other side.  This is not at all how the 
+actual handshake takes place.
 
 Hopefully this document will clear up the lack of actual documentation and 
 details regarding the implementation of the ADB protocol.
@@ -49,7 +51,9 @@ First argument, second argument? Okay, I guess there is no point in having tons
 of fields with `null` values for half depending on the type of command we're sending.
 This makes sense due to the limited size of USB packet, but having different 
 possible meanings for the value of `arg1` and `arg2` based on what type of 
-`command` we're sending can be frustrating.
+`command` we're sending can be frustrating.  It also means that any error messages
+are passed back as strings and we would have to parse strings to react to those
+errors.
 
 But where is the data you ask?  I don't even know.
 Actually I do.
@@ -65,9 +69,10 @@ has the `data_length` and `data_crc32`, that you can just append the actual data
 to the end of your node buffer / horrible C array.  
 But no, you can't. `¯\_(ツ)_/¯` 
 
-Keep in mind that when you're sending packets in ADB, most fields seem to need to
-be written in little endian byte order as well as read back from the device in
-little endian. 
+Keep in mind that when you're sending packets in ADB, most fields need to be 
+written in little endian byte order as well as read back from the device in
+little endian. This can be confusing initially if you're looking at packet capture
+hex dumps to determine the sequence of some ADB command.
 
 **NOTE:** You might be able to do the whole append *"data to the end of the packet 
 as usual"* thing if you're using the ADB protocol over TCP.  As an 
@@ -79,7 +84,7 @@ To prove to you that I'm not lying here's some hexdumps of the packet capture I
 did to actually figure out how this thing works. 
 
 First, the whole packet + data structure that totally makes sense and should work: 
-[adb](https://github.com/cstyan/adbDocumentation/raw/master/images/cnxnHost.png)  
+![adb](https://github.com/cstyan/adbDocumentation/raw/master/images/cnxnHost.png)  
 Here you can see both the `CNXN` command as well as the `host::` string for the 
 "system-identity" portion of our connection request.  But when you send this you 
 never get a response from the device you sent to.  
@@ -89,17 +94,17 @@ never get a response from the device you sent to.
 Here's what the AOSP's own implementation of ADB does:  
  
 1. The CNXN command
-[cnxn](https://github.com/cstyan/adbDocumentation/raw/master/images/googleCNXN.jpg) 
+![cnxn](https://github.com/cstyan/adbDocumentation/raw/master/images/googleCNXN.jpg) 
 Notice that the 8 bytes are the same as the bytes previous to the `host::` bytes 
 in the last hex dump.  This is from the `data_length` and `data_crc32` fields 
 being set based on wanting to send `host::` as our data.    
 2. The `host::` system-identity string
-[host](https://github.com/cstyan/adbDocumentation/raw/master/images/googleHost.png)  
+![host](https://github.com/cstyan/adbDocumentation/raw/master/images/googleHost.png)  
 ^ there's our actual data payload.  So you have to send twice for every command.  
 Such overhead, many packets!
 
 To go from a state of `no connection established` to `you have an adb shell into 
-your device` is about 40 USB packets. Efficiency!
+your device` is about 40 USB packets. Such efficiency!
 
 ## Handshake
 Most protocols that are connection oriented have a handshake and actual 
@@ -124,13 +129,14 @@ you could run `adb shell` if you wanted, is as follows:
 
 1. We send a CONNECT message to the device
 2. We send our system-information string to the device
-3. The device sends you an AUTH messagea
+3. The device sends you an AUTH message
 4. The device sends you the token you can sign
 5. Now you have two options
   - Sign the token with your private key and send it back with an AUTH type 2 **OR**
   - Send the device your public key with an AUTH type 3, this option will open 
   the "trust this computer" prompt on the device.
-6. The device accepts your signed token or public key and sends back it's own CONNECT message
+6. The device accepts your signed token or public key and sends back it's own 
+CONNECT message
 7. Device sends some information about itself
 
 You can now send normal messages to your device.
@@ -165,11 +171,19 @@ message seems to require a `:` between the type of stream we want to open and th
 rest of the commands string.  As an example, if we wanted to send a `shell ls -al` 
 command, the data payload as part of our OPEN message needs to be `shell:ls -al`.
 
+So this means that any stream we want to open to the device has the following 
+format: `streamType:options.`.  For example `adb reboot` would be `reboot:.`, 
+`adb shell rm -rf /` would be `shell:rm -rf /.`, etc.
+
 ## Undocumented Commands
 Besides the 7 command types listed in the documentation for ADB there are a number 
 of undocumented command types.  You can think of these as sub commands, as they 
 come as the data payload for another command.  These sub commands are used to signal 
 the device about the next thing we want to do, or information we want it to send us.
+
+There is some information about these commands in the 
+[sync](https://android.googlesource.com/platform/system/core/+/master/adb/SYNC.TXT) 
+documentation but as usual the documentation is incomplete.
 
 The sub commands include: SEND, RECV, STAT, QUIT
 
@@ -199,15 +213,15 @@ typedef struct _rf_stat__
 5. We send STAT to the device
 6. Device sends us OKAY
 7. We send WRTE to device
-8. We send the path of where we want to push a file to, `sdcard/testFile.txt`
+8. We send the destination of where we want to push a file to, `sdcard/`
 9. Device sends us OKAY
 10. Device sends us WRTE
-11. Device sends us STAT + some data about the destination we're sending to 
+11. Device sends us STAT + some info about the destination we're sending to 
 `sdcard/` 
 12. We send OKAY to device
 13. We send WRTE to device
 14. We send SEND to device, note that there is another 4 bytes in the data payload 
-of this packet which is the length of the file destination + name in characters.
+of this packet which is the length of the file destination + name in characters.  
 This one is a little annoying, if we're sending to `sdcard//test.py` then the length 
 is 15 characters.  Usually we write the hex equivalent of our payload to the packet
 we're sending, however in this case we need those 4 bytes after SEND to actually
@@ -241,7 +255,7 @@ that also contained DONE, indicating we've sent all the data.`
 ## ADB Pull
 The flow of an ADB pull starts of like the pull flow up until step 8:  
 
-8. We send full path of file we want to pull * sdcard/someFile.txt *
+8. We send full path of file we want to pull `sdcard/someFile.txt`
 9. Device sends us OKAY
 10. We send WRTE to device
 11. We send STAT to the device, this contains some more data but I'm not sure
@@ -253,7 +267,7 @@ the size of the filename after we've already sent the filename.
 14. We send RECV message to device
 15. Device sends us OKAY
 16. We send WRTE to the device
-17. We send the path of the file we want again * sdcard/someFile.txt *
+17. We send the path of the file we want again `sdcard/someFile.txt`
 18. Device sends us OKAY
 19. Device sends us WRTE
 20. Device sends us DATA + data length + the file data, if the file is more than 
