@@ -72,7 +72,9 @@ But no, you can't. `¯\_(ツ)_/¯`
 Keep in mind that when you're sending packets in ADB, most fields need to be 
 written in little endian byte order as well as read back from the device in
 little endian. This can be confusing initially if you're looking at packet capture
-hex dumps to determine the sequence of some ADB command.
+hex dumps to determine the sequence of some ADB command.  Additionally, most fields
+are written as the hex value of the data we want to send, however fields require
+the decimal value to be written into the packet as if it were a hex value.
 
 **NOTE:** You might be able to do the whole append *"data to the end of the packet 
 as usual"* thing if you're using the ADB protocol over TCP.  As an 
@@ -104,7 +106,7 @@ being set based on wanting to send `host::` as our data.
 Such overhead, many packets!
 
 To go from a state of `no connection established` to `you have an adb shell into 
-your device` is about 40 USB packets. Such efficiency!
+your device` is about 40 USB packets.
 
 ## Handshake
 Most protocols that are connection oriented have a handshake and actual 
@@ -257,14 +259,11 @@ The flow of an ADB pull starts of like the pull flow up until step 8:
 
 8. We send full path of file we want to pull `sdcard/someFile.txt`
 9. Device sends us OKAY
-10. We send WRTE to device
-11. We send STAT to the device, this contains some more data but I'm not sure
-what the data actually is.  The link above seems to suggest the data would be
-the size of the filename among other things, but it doesn't make sense to send
-the size of the filename after we've already sent the filename.
-12. Device sends us OKAY
-13. We send WRTE message to device
-14. We send RECV message to device
+10. Device sends us WRTE
+11. Device sends us STAT with stats about the file we want to pull
+12. We send OKAY to device
+13. We send WRTE to device
+14. We send RECV to device
 15. Device sends us OKAY
 16. We send WRTE to the device
 17. We send the path of the file we want again `sdcard/someFile.txt`
