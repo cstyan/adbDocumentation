@@ -223,13 +223,9 @@ typedef struct _rf_stat__
 12. We send OKAY to device
 13. We send WRTE to device
 14. We send SEND to device, note that there is another 4 bytes in the data payload 
-of this packet which is the length of the file destination + name in characters.  
-This one is a little annoying, if we're sending to `sdcard//test.py` then the length 
-is 15 characters.  Usually we write the hex equivalent of our payload to the packet
-we're sending, however in this case we need those 4 bytes after SEND to actually
-have the exact number of characters written in little endian byte order.  For this
-example, the hex dump of SEND + the number of characters of in the file name would
-be: 53 45 4e 44 15 00  00 00  
+of this packet which is the length of the file destination + name in characters plus
+the ',mode' portion from 17.  So if we're sending `sdcard//testFile.txt,XXXXX` we
+write SEND26.
 The ADB protocol is full of inconsistencies, in case you hadn't already noticed.
 15. Device sends us OKAY
 16. We send WRTE to device
