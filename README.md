@@ -174,12 +174,12 @@ rest of the commands string.  As an example, if we wanted to send a `shell ls -a
 command, the data payload as part of our OPEN message needs to be `shell:ls -al`.
 
 So this means that any stream we want to open to the device has the following 
-format: `streamType:options.`.  For example `adb reboot` would be `reboot:.`, 
-`adb shell rm -rf /` would be `shell:rm -rf /.`, etc.
+format: `streamType:options.`.  For example `adb reboot` would be `reboot:`, 
+`adb shell rm -rf /` would be `shell:rm -rf /`, etc.
 
 ## Undocumented Commands
 Besides the 7 command types listed in the documentation for ADB there are a number 
-of undocumented command types.  You can think of these as sub commands, as they 
+of 'undocumented' command types.  You can think of these as sub commands, as they 
 come as the data payload for another command.  These sub commands are used to signal 
 the device about the next thing we want to do, or information we want it to send us.
 
