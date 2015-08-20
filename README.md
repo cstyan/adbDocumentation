@@ -234,8 +234,8 @@ The ADB protocol is full of inconsistencies, in case you hadn't already noticed.
     full file path, the mode of the file in decimal (0644 becomes 33188),
     `DATAnnnnTheFileData` where nnnn is the size of the file sending, each n is one 
     byte.  
-    - If your file is larger than 64k bits you just need to keep sending WRTE 
-    followed by another `DATA nnnnFileData` until you've sent all the file data. 
+    - If your file is larger than 64k bits you just need to keep sending WRTE with
+    file data followed by another `DATA nnnnFileData` until you've sent all the file data. 
     - When we're sending the the packet containing the last of the file data we append 
     `DONEnnnn` to the end of the packet, where `nnnn` is the creation time we want 
     the file to have on the device. 
