@@ -15,7 +15,7 @@ lacking in details around the implementation of the protocol.  These details are
 things anyone familiar with common network protocols would expect to see in the 
 documentation of a protocol.
 
-For example:  The documentation regarding making a connection to the device consists
+For example: The documentation regarding making a connection to the device consists
 of
 > Both sides send a CONNECT message when the connection between them is
   established.  Until a CONNECT message is received no other messages may
@@ -48,12 +48,11 @@ ADB packets, they kind of suck.
   unsigned magic;         /* command ^ 0xffffffff             */
     
 First argument, second argument? Okay, I guess there is no point in having tons 
-of fields with `null` values for half depending on the type of command we're sending.
-This makes sense due to the limited size of USB packet, but having different 
-possible meanings for the value of `arg1` and `arg2` based on what type of 
-`command` we're sending can be frustrating.  It also means that any error messages
-are passed back as strings and we would have to parse strings to react to those
-errors.
+of fields with `null` values for half of them depending on the type of command we're 
+sending. However, having different possible meanings for the value of `arg1` and `arg2` 
+based on what type of `command` we're sending can be confusing.  It also means that any 
+error messages are passed back as strings and we would have to parse strings to react 
+in order to react to those errors.
 
 But where is the data you ask?  I don't even know.
 Actually I do.
@@ -71,9 +70,7 @@ But no, you can't. `¯\_(ツ)_/¯`
 Keep in mind that when you're sending packets in ADB, most fields need to be 
 written in little endian byte order as well as read back from the device in
 little endian. This can be confusing initially if you're looking at packet capture
-hex dumps to determine the sequence of some ADB command.  Additionally, most fields
-are written as the hex value of the data we want to send, however fields require
-the decimal value to be written into the packet as if it were a hex value.
+hex dumps to determine the sequence of some ADB command.
 
 **NOTE:** You might be able to do the whole append *"data to the end of the packet 
 as usual"* thing if you're using the ADB protocol over TCP.  As an 
@@ -105,7 +102,7 @@ being set based on wanting to send `host::` as our data.
 Such overhead, many packets!
 
 To go from a state of `no connection established` to `you have an adb shell into 
-your device` is about 40 USB packets.
+your device` is about 40 USB packets. Efficiency :thumbsup:
 
 ## Handshake
 Most protocols that are connection oriented have a handshake and actual 
@@ -186,13 +183,17 @@ There is some information about these commands in the
 [sync](https://android.googlesource.com/platform/system/core/+/master/adb/SYNC.TXT) 
 documentation but as usual the documentation is incomplete.
 
-The sub commands include: SEND, RECV, STAT, QUIT
+The sub commands include: SEND, RECV, DATA, STAT, and QUIT.  There may be others.
 
 For example say we want to use the `adb push` command, the protocol nests STAT
 and SEND within WRTE commands during the transfer of the data, and our host machine
 will nest a QUIT inside a final WRTE in order to signal the end of the transfer.
 The `adb pull` command works similar except that there is a RECV nested inside a 
 WRITE rather than a SEND, we also recv a DATA + file data inside of another WRTE.
+
+DATA is the subcommand that is the exception to the `command first, then another
+packet with the data payload` rule, though technically the DATA command is part of
+the data payload for another command.
 
 The STAT sub command is used to get file attributes.
 ```
