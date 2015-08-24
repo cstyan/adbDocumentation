@@ -58,10 +58,9 @@ errors.
 But where is the data you ask?  I don't even know.
 Actually I do.
 
-Because USB packets are limited to 512 bytes, ADB over USB expects to receive an
-ADB packet with the fields listed above, followed by another USB packet with any
-data payload associated with that ADB packet.  Again, there is no mention of this
-in any of the AOSP's ADB documentation.
+ADB over USB expects to receive an ADB packet with the fields listed above, followed 
+by another USB packet with any data payload associated with that ADB packet.  Again, 
+there is no mention of this in any of the AOSP's ADB documentation.
 
 Since the CONNECT message is supposed to have a format of `CONNECT(version, maxdata, 
 "system-identity-string")`, you'd think it's safe to assume that since the packet 
