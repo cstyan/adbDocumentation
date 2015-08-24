@@ -274,3 +274,10 @@ terminated with DONE after the file data portion of the payload.
 24. Device sends us OKAY
 25. We send CLSE message to device
 26. Device sends us CLSE
+
+## ADB Install
+Install is just a combination of pushing an APK to /data/local/tmp and then running
+the shell command `pm install /data/local/temp/apkName.apk`.
+
+## ADB Reboot
+Just open a stream with the command `reboot:`.
