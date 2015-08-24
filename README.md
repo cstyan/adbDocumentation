@@ -54,8 +54,8 @@ based on what type of `command` we're sending can be confusing.  It also means t
 error messages are passed back as strings and we would have to parse strings to react 
 in order to react to those errors.
 
-But where is the data you ask?  I don't even know.
-Actually I do.
+But where is the data you ask?  
+![shark](https://github.com/cstyan/adbDocumentation/raw/master/images/shark.jpg)
 
 ADB over USB expects to receive an ADB packet with the fields listed above, followed 
 by another USB packet with any data payload associated with that ADB packet.  Again, 
@@ -139,7 +139,7 @@ CONNECT message
 
 You can now send normal messages to your device.
 
-## Sending Messages
+## Sending Messages & ADB Shell
 After that handshake business we can start doing other things, like opening a 
 shell on the device.
 
@@ -165,7 +165,7 @@ that's something like:
 6. We send OKAY to the device
 
 Note that the end of whatever string you're sending the device as part of an OPEN
-message seems to require a `:` between the type of stream we want to open and the
+message requires a `:` between the type of stream we want to open and the
 rest of the commands string.  As an example, if we wanted to send a `shell ls -al` 
 command, the data payload as part of our OPEN message needs to be `shell:ls -al`.
 
@@ -266,7 +266,7 @@ The flow of an ADB pull starts of like the pull flow up until step 8:
 18. Device sends us OKAY
 19. Device sends us WRTE
 20. Device sends us DATA + data length + the file data, if the file is more than 
-65k there will be multiple DATA messages.  The last file data transfer will be 
+64k there will be multiple DATA messages.  The last file data transfer will be 
 terminated with DONE after the file data portion of the payload.
 21. We send the device OKAY after each DATA message
 22. At the end of the data transfer we send WRTE to the device
