@@ -38,6 +38,12 @@ NOTE: The majority of the information presented is for use of the ADB protocol
 with USB.  If you have information about it's use with TCP please submit a
 pull request. :simple_smile:
 
+## Disclaimer
+Please take all snarky comments with a grain of salt.  I like protocols, and 
+reverse engineer ADB was a lot of fun.  These comments are representations of my
+immediate "WTF?!" reaction to certain aspects of ADB.  I'm sure there were actual
+rational decisions behind most of the things I make fun of here.
+
 ## Packet Format
 ADB packets, they kind of suck.  
 > unsigned command;       /* command identifier constant        */  
@@ -281,3 +287,12 @@ the shell command `pm install /data/local/temp/apkName.apk`.
 
 ## ADB Reboot
 Just open a stream with the command `reboot:`.
+
+## Authentication
+In their infinite wisdom, the AOSP thought it was cool to use their own crypto
+library in order to sign tokens used in the authentication process, even though 
+they're using standard RSA keys.  If you want to be able to authenticate with
+a device instead of sending it your public key everytime you make a connection, 
+you'll need to use their library.
+
+The library is called libmincrypt, and can be found [here](https://android.googlesource.com/platform/system/core/+/master/libmincrypt/).
