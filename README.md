@@ -16,7 +16,7 @@ things anyone familiar with common network protocols would expect to see in the
 documentation of a protocol.
 
 For example: The documentation regarding making a connection to the device consists
-of
+of:
 > Both sides send a CONNECT message when the connection between them is
   established.  Until a CONNECT message is received no other messages may
   be sent.  Any messages received before a CONNECT message MUST be ignored.
@@ -36,13 +36,13 @@ documentation out there about the ADB protocol
 
 NOTE: The majority of the information presented is for use of the ADB protocol
 with USB.  If you have information about it's use with TCP please submit a
-pull request. :simple_smile:
+pull request. :smile:
 
 ## Disclaimer
 Please take all snarky comments with a grain of salt.  I like protocols, and 
-reverse engineer ADB was a lot of fun.  These comments are representations of my
-immediate "WTF?!" reaction to certain aspects of ADB.  I'm sure there were actual
-rational decisions behind most of the things I make fun of here.
+reverse engineering ADB was a lot of fun.  These comments are representations of 
+my immediate "WTF?!" reactions to certain aspects of ADB.  I'm sure there were 
+actual rational decisions behind most of the things I make fun of in this doc.
 
 ## Packet Format
 ADB packets, they kind of suck.  
