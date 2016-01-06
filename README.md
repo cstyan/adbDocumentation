@@ -141,6 +141,9 @@ you could run `adb shell` if you wanted, is as follows:
   the "trust this computer" prompt on the device.
 6. The device accepts your signed token or public key and sends back it's own 
 CONNECT message
+NOTE: if for any reason you send back the AUTH packet with your public key and the
+device does not respond, a retransmission of the AUTH/public key does not appear
+to work, and you must restart the connection process from step 1.
 7. Device sends some information about itself
 
 You can now send normal messages to your device.
