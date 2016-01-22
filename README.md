@@ -1,5 +1,5 @@
 # ADB Protocol Documentation
-ADB (Android Debug Bridge) and it's protocol is what you're computer uses to 
+ADB (Android Debug Bridge) and its protocol is what your computer uses to 
 communicate with Android devices.  The protocol itself is an 
 [application layer](https://en.wikipedia.org/wiki/Application_layer) protocol, 
 which can sit inside TCP or USB.  The AOSP (Android Open Source Project) 
