@@ -1,5 +1,5 @@
 # ADB Protocol Documentation
-ADB (Android Debug Bridge) and it's protocol is what you're computer uses to 
+ADB (Android Debug Bridge) and its protocol is what your computer uses to 
 communicate with Android devices.  The protocol itself is an 
 [application layer](https://en.wikipedia.org/wiki/Application_layer) protocol, 
 which can sit inside TCP or USB.  The AOSP (Android Open Source Project) 
@@ -78,7 +78,7 @@ written in little endian byte order as well as read back from the device in
 little endian. This can be confusing initially if you're looking at packet capture
 hex dumps to determine the sequence of some ADB command.
 
-**NOTE:** You might be able to do the whole append *"data to the end of the packet 
+**NOTE:** You might be able to do the whole *"append data to the end of the packet 
 as usual"* thing if you're using the ADB protocol over TCP.  As an 
 [example](https://github.com/sidorares/node-adbhost), Andrey seems to be able to
  do this just fine over TCP.
@@ -182,9 +182,9 @@ So this means that any stream we want to open to the device has the following
 format: `streamType:options.`.  For example `adb reboot` would be `reboot:`, 
 `adb shell rm -rf /` would be `shell:rm -rf /`, etc.
 
-## Undocumented Commands
+## Sync Commands
 Besides the 7 command types listed in the documentation for ADB there are a number 
-of 'undocumented' command types.  You can think of these as sub commands, as they 
+of 'undocumented' sync command types.  You can think of these as sub commands, as they 
 come as the data payload for another command.  These sub commands are used to signal 
 the device about the next thing we want to do, or information we want it to send us.
 
@@ -260,7 +260,7 @@ that also contained DONE, indicating we've sent all the data.`
 26. Device sends us CLSE
 
 ## ADB Pull
-The flow of an ADB pull starts of like the pull flow up until step 8:  
+The flow of an ADB pull starts of like the push flow up until step 8:  
 
 8. We send full path of file we want to pull `sdcard/someFile.txt`
 9. Device sends us OKAY
