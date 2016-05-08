@@ -97,8 +97,8 @@ never get a response from the device you sent to.
 
 Here's what the AOSP's own implementation of ADB does:  
  
-1. The CNXN command
-![cnxn](https://github.com/cstyan/adbDocumentation/raw/master/images/googleCNXN.jpg) 
+1. The CNXN command  
+![cnxn](https://github.com/cstyan/adbDocumentation/raw/master/images/googleCNXN.jpg)  
 Notice that the 8 bytes are the same as the bytes previous to the `host::` bytes 
 in the last hex dump.  This is from the `data_length` and `data_crc32` fields 
 being set based on wanting to send `host::` as our data.    
