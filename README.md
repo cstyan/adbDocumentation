@@ -284,6 +284,37 @@ terminated with DONE after the file data portion of the payload.
 25. We send CLSE message to device
 26. Device sends us CLSE
 
+## ADB List
+
+This command is not available through the `adb` command. It lists files in a folder. It is more reliable than parsing the results of `adb shell 'ls -al <remote dir>'` - see http://mywiki.wooledge.org/ParsingLs
+
+1. We send OPEN message to device
+2. We send sync: to the device `sync: starts a SYNC service `
+3. Device sends us OKAY
+4. We send WRTE to device
+5. We send LIST to device and the length (in characters) of the remote path we want to list
+6. Device sends OKAY
+7. We send WRTE to device
+8. We send the remote path we want to list e.g. `sdcard/`
+9. Device sends OKAY
+10. We send WRTE to device
+11. We send RECV to device
+12. Device sends a series of "dents" (directory entries), across an arbritrary number of packets of abritrary length - sometimes the packets are only 1 byte long. It will send OKAY when the next packet is ready. We keep returning to 10. (send WRTE, RECV, read DENT) until we receive DONE. "dents" can be split across several packets, but are the following structure: 
+    1. A four-byte response id DENT (or DONE, if there are no more files to list. DONE is sent immediately if the remote path does not exist or if it is not a folder)
+    2. A four-byte integer representing file mode - first 9 bits of this mode represent the file permissions, as with chmod mode. Bits 14 to 16 seem to represent the file type, one of `0b100` (file), `0b010` (directory), `0b101` (symlink)
+    3. A four-byte integer representing file size.
+    4. A four-byte integer representing last modified time in seconds since Unix Epoch.
+    5. A four-byte integer representing file name length.
+    6. A utf-8 string representing the file name.
+    7. Back to 1.
+18. Device sends DONE. DONE can appear in the start, middle or end of a packet. Sometimes the rest of the packet after DONE is padded with 0s.
+19. We send OKAY to device
+20. We send WRTE to device
+21. We send QUIT to device
+22. Device sends us OKAY
+23. We send CLSE to device
+24. Device sends us CLSE
+
 ## ADB Install
 Install is just a combination of pushing an APK to /data/local/tmp and then running
 the shell command `pm install /data/local/temp/apkName.apk`.
