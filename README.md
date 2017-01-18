@@ -1,33 +1,33 @@
 # ADB Protocol Documentation
 ADB (Android Debug Bridge) and its protocol is what your computer uses to 
-communicate with Android devices.  The protocol itself is an 
+communicate with Android devices. The protocol itself is an 
 [application layer](https://en.wikipedia.org/wiki/Application_layer) protocol, 
-which can sit inside TCP or USB.  The AOSP (Android Open Source Project) 
+which can sit inside TCP or USB. The AOSP (Android Open Source Project) 
 documentation for the protocol and processes that use it can be found in their 
-ADB code repository as **text** files:
+ADB code repository:
 * [protocol](https://android.googlesource.com/platform/system/core/+/master/adb/protocol.txt)
 * [ADB overview](https://android.googlesource.com/platform/system/core/+/master/adb/OVERVIEW.TXT)
 * [sync](https://android.googlesource.com/platform/system/core/+/master/adb/SYNC.TXT)
 * [services](https://android.googlesource.com/platform/system/core/+/master/adb/SERVICES.TXT)
 
 The issue with the documentation provided by the AOSP is that it's severely 
-lacking in details around the implementation of the protocol.  These details are 
-things anyone familiar with common network protocols would expect to see in the 
+lacking in details around the implementation of the protocol. These details are 
+things anyone familiar with common communication protocols would expect to see in the 
 documentation of a protocol.
 
 For example: The documentation regarding making a connection to the device consists
 of:
 > Both sides send a CONNECT message when the connection between them is
-  established.  Until a CONNECT message is received no other messages may
-  be sent.  Any messages received before a CONNECT message MUST be ignored.
+  established. Until a CONNECT message is received no other messages may
+  be sent. Any messages received before a CONNECT message MUST be ignored.
 
-This is not nearly enough information for us to perform the handshake required to
-connect to a device, from this it sounds like each side just sends CONNECT endlessly
-until it receives a connect from the other side.  This is not at all how the 
+This is not enough information for us to perform the handshake required to
+connect to a device. From this it sounds like each side just sends CONNECT endlessly
+until it receives a CONNECT from the other side. This is not at all how the 
 actual handshake takes place.
 
-Hopefully this document will clear up the lack of actual documentation and 
-details regarding the implementation of the ADB protocol.
+Hopefully this document will clear up ambiguous documentation and 
+details regarding the implementation of the ADB protocol for those who are interested.
 The packet capture I refer to that was captured during a connection sequence 
 using Googles ADB implementation is in this repo under `adbCapture.pcapng`.
 
@@ -35,42 +35,38 @@ My aim is for this document to eventually be a suitable replacement for other
 documentation out there about the ADB protocol
 
 NOTE: The majority of the information presented is for use of the ADB protocol
-with USB.  If you have information about it's use with TCP please submit a
+with USB. If you have information about it's use with TCP please submit a
 pull request. :smile:
 
 ## Disclaimer
-Please take all snarky comments with a grain of salt.  I like protocols, and 
-reverse engineering ADB was a lot of fun.  These comments are representations of 
-my immediate "WTF?!" reactions to certain aspects of ADB.  I'm sure there were 
-actual rational decisions behind most of the things I make fun of in this doc.
+I like protocols, and reverse engineering ADB was a lot of fun. My comments are representations of 
+my immediate reactions to certain aspects of ADB. I'm sure there were actual rational decisions behind 
+most of the things I poke fun at in this doc.
 
 ## Packet Format
-ADB packets, they kind of suck.  
+ADB packets:
 > unsigned command;       /* command identifier constant        */  
   unsigned arg1;          /* first argument                   */  
   unsigned arg2;          /* second argument                  */  
   unsigned data_length;   /* length of payload (0 is allowed) */  
   unsigned data_crc32;    /* crc32 of data payload            */  
   unsigned magic;         /* command ^ 0xffffffff             */
-    
-First argument, second argument? Okay, I guess there is no point in having tons 
-of fields with `null` values for half of them depending on the type of command we're 
-sending. However, having different possible meanings for the value of `arg1` and `arg2` 
-based on what type of `command` we're sending can be confusing.  It also means that any 
-error messages are passed back as strings and we would have to parse strings to react 
-in order to react to those errors.
+
+Having different possible meanings for the value of `arg1` and `arg2` based on what type of 
+`command` we're sending can be confusing. It also means that any error messages are passed 
+back as strings and we would have to parse strings in order to react to those errors.
 
 But where is the data you ask?  
 ![shark](https://github.com/cstyan/adbDocumentation/raw/master/images/shark.jpg)
 
 ADB over USB expects to receive an ADB packet with the fields listed above, followed 
-by another USB packet with any data payload associated with that ADB packet.  Again, 
+by another USB packet with any data payload associated with that ADB packet. Again, 
 there is no mention of this in any of the AOSP's ADB documentation.
 
 Since the CONNECT message is supposed to have a format of `CONNECT(version, maxdata, 
 "system-identity-string")`, you'd think it's safe to assume that since the packet 
 has the `data_length` and `data_crc32`, that you can just append the actual data 
-to the end of your node buffer / horrible C array.  
+to the end of your node buffer / C array.  
 But no, you can't. `¯\_(ツ)_/¯` 
 
 Keep in mind that when you're sending packets in ADB, most fields need to be 
@@ -79,7 +75,7 @@ little endian. This can be confusing initially if you're looking at packet captu
 hex dumps to determine the sequence of some ADB command.
 
 **NOTE:** You might be able to do the whole *"append data to the end of the packet 
-as usual"* thing if you're using the ADB protocol over TCP.  As an 
+as usual"* thing if you're using the ADB protocol over TCP. As an 
 [example](https://github.com/sidorares/node-adbhost), Andrey seems to be able to
  do this just fine over TCP.
 
@@ -90,7 +86,7 @@ did to actually figure out how this thing works.
 First, the whole packet + data structure that totally makes sense and should work: 
 ![adb](https://github.com/cstyan/adbDocumentation/raw/master/images/cnxnHost.png)  
 Here you can see both the `CNXN` command as well as the `host::` string for the 
-"system-identity" portion of our connection request.  But when you send this you 
+"system-identity" portion of our connection request. But when you send this you 
 never get a response from the device you sent to.  
 
 ---
@@ -100,12 +96,11 @@ Here's what the AOSP's own implementation of ADB does:
 1. The CNXN command  
 ![cnxn](https://github.com/cstyan/adbDocumentation/raw/master/images/googleCNXN.jpg)  
 Notice that the 8 bytes are the same as the bytes previous to the `host::` bytes 
-in the last hex dump.  This is from the `data_length` and `data_crc32` fields 
+in the last hex dump. This is from the `data_length` and `data_crc32` fields 
 being set based on wanting to send `host::` as our data.    
 2. The `host::` system-identity string
 ![host](https://github.com/cstyan/adbDocumentation/raw/master/images/googleHost.png)  
-^ there's our actual data payload.  So you have to send twice for every command.  
-Such overhead, many packets!
+^ there's our actual data payload. So you have to send twice for every command.  
 
 To go from a state of `no connection established` to `you have an adb shell into 
 your device` is about 40 USB packets. Efficiency :thumbsup:
@@ -114,17 +109,17 @@ your device` is about 40 USB packets. Efficiency :thumbsup:
 Most protocols that are connection oriented have a handshake and actual 
 documentation of their handshake process, such as 
 [TCP](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Connection_establishment).  
-Unfortunately ADB does not, thanks Google.  
+Unfortunately ADB does not.  
 
 But really, are you surprised?
 
 According to the documnetation in that wonderful `protocol.txt` file:
 > Both sides send a CONNECT message when the connection between them is
-established.  Until a CONNECT message is received no other messages may
-be sent.  Any messages received before a CONNECT message MUST be ignored.
+established. Until a CONNECT message is received no other messages may
+be sent. Any messages received before a CONNECT message MUST be ignored.
 
 That's really useful, it's clear who needs to initiate the connection by sending 
-a CONNECT message first right?  It's also clear that the device's response to our 
+a CONNECT message first right? It's also clear that the device's response to our 
 CONNECT message is going to be an AUTH message if the device is running Android 
 4.4 or higher, because that's clearly documented as part of the protocol. :angry: 
 
@@ -158,7 +153,7 @@ Command type WRTE is for sending any old data across as part of that stream.
 
 The documentation doesn't like to be consistent, and defines a message type of 
 READY, but the string you send as the COMMAND field of the packet is OKAY.
-I'm going to refer to this as an OKAY message.  If we're sending OPEN/WRTE then 
+I'm going to refer to this as an OKAY message. If we're sending OPEN/WRTE then 
 we must wait for a response of OKAY before it can send again, otherwise the 
 device will disconnect from us because this protocol handles the receiving of 
 out-of-order data gracefully.
@@ -175,24 +170,24 @@ that's something like:
 
 Note that the end of whatever string you're sending the device as part of an OPEN
 message requires a `:` between the type of stream we want to open and the
-rest of the commands string.  As an example, if we wanted to send a `shell ls -al` 
+rest of the commands string. As an example, if we wanted to send a `shell ls -al` 
 command, the data payload as part of our OPEN message needs to be `shell:ls -al`.
 
 So this means that any stream we want to open to the device has the following 
-format: `streamType:options.`.  For example `adb reboot` would be `reboot:`, 
+format: `streamType:options.`. For example `adb reboot` would be `reboot:`, 
 `adb shell rm -rf /` would be `shell:rm -rf /`, etc.
 
 ## Sync Commands
 Besides the 7 command types listed in the documentation for ADB there are a number 
-of 'undocumented' sync command types.  You can think of these as sub commands, as they 
-come as the data payload for another command.  These sub commands are used to signal 
+of 'undocumented' sync command types. You can think of these as sub commands, as they 
+come as the data payload for another command. These sub commands are used to signal 
 the device about the next thing we want to do, or information we want it to send us.
 
 There is some information about these commands in the 
 [sync](https://android.googlesource.com/platform/system/core/+/master/adb/SYNC.TXT) 
 documentation but as usual the documentation is incomplete.
 
-The sub commands include: SEND, RECV, DATA, STAT, and QUIT.  There may be others.
+The sub commands include: SEND, RECV, DATA, STAT, and QUIT. There may be others.
 
 For example say we want to use the `adb push` command, the protocol nests STAT
 and SEND within WRTE commands during the transfer of the data, and our host machine
@@ -233,7 +228,7 @@ typedef struct _rf_stat__
 13. We send WRTE to device
 14. We send SEND to device, note that there is another 4 bytes in the data payload 
 of this packet which is the length of the file destination + name in characters plus
-the ',mode' portion from 17.  So if we're sending `sdcard//testFile.txt,XXXXX` we
+the ',mode' portion from 17. So if we're sending `sdcard//testFile.txt,XXXXX` we
 write SEND26.
 The ADB protocol is full of inconsistencies, in case you hadn't already noticed.
 15. Device sends us OKAY
@@ -323,10 +318,10 @@ the shell command `pm install /data/local/temp/apkName.apk`.
 Just open a stream with the command `reboot:`.
 
 ## Authentication
-In their infinite wisdom, the AOSP thought it was cool to use their own crypto
-library in order to sign tokens used in the authentication process, even though 
-they're using standard RSA keys.  If you want to be able to authenticate with
-a device instead of sending it your public key everytime you make a connection, 
-you'll need to use their library.
+The AOSP thought it was cool to use their own crypto library in order to sign tokens 
+used in the authentication process, even though they're using standard RSA keys. 
+If you want to be able to authenticate with a device instead of sending it your public 
+key everytime you make a connection, you'll need to use their library. Or reimplement it
+yourself.
 
 The library is called libmincrypt, and can be found [here](https://android.googlesource.com/platform/system/core/+/master/libmincrypt/).
