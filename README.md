@@ -113,7 +113,7 @@ Unfortunately ADB does not.
 
 But really, are you surprised?
 
-According to the documnetation in that wonderful `protocol.txt` file:
+According to the documentation in that wonderful `protocol.txt` file:
 > Both sides send a CONNECT message when the connection between them is
 established. Until a CONNECT message is received no other messages may
 be sent. Any messages received before a CONNECT message MUST be ignored.
@@ -192,7 +192,7 @@ The sub commands include: SEND, RECV, DATA, STAT, and QUIT. There may be others.
 For example say we want to use the `adb push` command, the protocol nests STAT
 and SEND within WRTE commands during the transfer of the data, and our host machine
 will nest a QUIT inside a final WRTE in order to signal the end of the transfer.
-The `adb pull` command works similar except that there is a RECV nested inside a 
+The `adb pull` command works similarly except that there is a RECV nested inside a 
 WRITE rather than a SEND, we also recv a DATA + file data inside of another WRTE.
 
 DATA is the subcommand that is the exception to the `command first, then another
@@ -240,7 +240,7 @@ The ADB protocol is full of inconsistencies, in case you hadn't already noticed.
     byte.  
     - If your file is larger than 64k bits you just need to keep sending WRTE with
     file data followed by another `DATA nnnnFileData` until you've sent all the file data. 
-    - When we're sending the the packet containing the last of the file data we append 
+    - When we're sending the packet containing the last of the file data we append 
     `DONEnnnn` to the end of the packet, where `nnnn` is the creation time we want 
     the file to have on the device. 
 18. Device sends us OKAY ` NOTE: here were assuming we just sent a data packet 
@@ -294,7 +294,7 @@ This command is not available through the `adb` command. It lists files in a fol
 9. Device sends OKAY
 10. We send WRTE to device
 11. We send RECV to device
-12. Device sends a series of "dents" (directory entries), across an arbritrary number of packets of abritrary length - sometimes the packets are only 1 byte long. It will send OKAY when the next packet is ready. We keep returning to 10. (send WRTE, RECV, read DENT) until we receive DONE. "dents" can be split across several packets, but are the following structure: 
+12. Device sends a series of "dents" (directory entries), across an arbitrary number of packets of arbitrary length - sometimes the packets are only 1 byte long. It will send OKAY when the next packet is ready. We keep returning to 10. (send WRTE, RECV, read DENT) until we receive DONE. "dents" can be split across several packets, but are the following structure: 
     1. A four-byte response id DENT (or DONE, if there are no more files to list. DONE is sent immediately if the remote path does not exist or if it is not a folder)
     2. A four-byte integer representing file mode - first 9 bits of this mode represent the file permissions, as with chmod mode. Bits 14 to 16 seem to represent the file type, one of `0b100` (file), `0b010` (directory), `0b101` (symlink)
     3. A four-byte integer representing file size.
@@ -302,7 +302,7 @@ This command is not available through the `adb` command. It lists files in a fol
     5. A four-byte integer representing file name length.
     6. A utf-8 string representing the file name.
     7. Back to 1.
-18. Device sends DONE. DONE can appear in the start, middle or end of a packet. Sometimes the rest of the packet after DONE is padded with 0s.
+18. Device sends DONE. DONE can appear anywhere within the packet, either at the start, middle, or end. Sometimes the rest of the packet after DONE is padded with 0s.
 19. We send OKAY to device
 20. We send WRTE to device
 21. We send QUIT to device
