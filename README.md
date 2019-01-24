@@ -281,7 +281,10 @@ terminated with DONE after the file data portion of the payload.
 
 ## ADB List
 
-This command is not available through the `adb` command. It lists files in a folder. It is more reliable than parsing the results of `adb shell 'ls -al <remote dir>'` - see http://mywiki.wooledge.org/ParsingLs
+This command is not available through the `adb` command. It lists files in a folder. It is more reliable than parsing the results of `adb shell 'ls -al <remote dir>'` - see http://mywiki.wooledge.org/ParsingLs.
+
+NOTE: I've been in contact with someone at Google who passed on this message from an engineer who works on Android:  
+> "adb list" is available through `adb`, it's just called `ls`: `adb ls/`, for example (as opposed to `adb shell ls /`).
 
 1. We send OPEN message to device
 2. We send sync: to the device `sync: starts a SYNC service `
