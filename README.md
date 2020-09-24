@@ -79,7 +79,7 @@ as usual"* thing if you're using the ADB protocol over TCP. As an
 [example](https://github.com/sidorares/node-adbhost), Andrey seems to be able to
  do this just fine over TCP.
 
-##Packet Captures
+## Packet Captures
 To prove to you that I'm not lying here's some hexdumps of the packet capture I 
 did to actually figure out how this thing works. 
 
