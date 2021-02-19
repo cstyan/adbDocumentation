@@ -5,10 +5,10 @@ communicate with Android devices. The protocol itself is an
 which can sit inside TCP or USB. The AOSP (Android Open Source Project) 
 documentation for the protocol and processes that use it can be found in their 
 ADB code repository:
-* [protocol](https://android.googlesource.com/platform/system/core/+/master/adb/protocol.txt)
-* [ADB overview](https://android.googlesource.com/platform/system/core/+/master/adb/OVERVIEW.TXT)
-* [sync](https://android.googlesource.com/platform/system/core/+/master/adb/SYNC.TXT)
-* [services](https://android.googlesource.com/platform/system/core/+/master/adb/SERVICES.TXT)
+* [protocol](https://android.googlesource.com/platform/packages/modules/adb/+/master/protocol.txt)
+* [ADB overview](https://android.googlesource.com/platform/packages/modules/adb/+/master/OVERVIEW.TXT)
+* [sync](https://android.googlesource.com/platform/packages/modules/adb/+/master/SYNC.TXT)
+* [services](https://android.googlesource.com/platform/packages/modules/adb/+/master/SERVICES.TXT)
 
 The issue with the documentation provided by the AOSP is that it's severely 
 lacking in details around the implementation of the protocol. These details are 
