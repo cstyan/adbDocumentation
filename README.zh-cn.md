@@ -31,13 +31,14 @@ AOSP提供的文档存在问题，就是在协议实现方面缺乏详细说明�
 
 ADB packets: 
 
-> unsigned command; /* command identifier constant */
+```
+unsigned command; /* command identifier constant */
 unsigned arg1; /* first argument */
 unsigned arg2; /* second argument */
 unsigned data_length; /* length of payload (0 is allowed) */
 unsigned data_crc32; /* crc32 of data payload */
 unsigned magic; /* command ^ 0xffffffff */
-> 
+``` 
 
 根据我们发送的命令类型，对于`arg1`和`arg2`的值有不同的可能含义，这可能会令人困惑。这也意味着任何错误消息都以字符串形式传递，我们必须解析字符串才能对这些错误做出反应。
 
