@@ -315,9 +315,7 @@ NOTE: I've been in contact with someone at Google who passed on this message fro
 
 NOTE: On files over the integer limit (around 2.14 GB) the 4 byte size will overflow resulting in a 2.14GB file recounting from 0 This issue is fixed within the code of the AOSP ADB implementation by using 8 bytes instead of 4 (whitout any mention of it in the AOSP's own doccumentation 🙃) this works the same way as the before mentioned protocol for adb list the change is on step 5 instead of LIST we send LIS2, and instead of DENT the device will send back DENT2 and the received packet will be in a different sized format, heres an example listing the differences between LIST and LIS2 (notice the size in part 3. being the correct size of )
                      
-                     DENT/DEN2                                         2.                                3.                                4.                                5.       6.    
-LIST packet example: 44454e54                                          b0810000                          06381c4e                          7bcbf965                          09000000 74657374322e7a6970
-LIS2 packet example: 444e5432 000000003c000000000000000300140000000000 b081000001000000 60270000ff030000 06381c4e02000000 7bcbf96500000000 7bcbf96500000000 bce4f96500000000 09000000 74657374322e7a6970
+![host](/images/DENT2.png)
 
 After DEN2 there is 20 bytes of unknown data ( could be some extra file info that i havent figured out ) after that step 2., 3., 4., are the same as the before mentioned list of file data except its 8 bytes long instead of 4 and theres an extra added 8 bytes (which is undoccumented ) parts 5., 6. are exactly the same.
 
