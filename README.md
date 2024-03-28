@@ -313,7 +313,7 @@ NOTE: I've been in contact with someone at Google who passed on this message fro
 23. We send CLSE to device
 24. Device sends us CLSE
 
-NOTE: On files over the integer limit (around 2.14 GB) the 4 byte size will overflow resulting in a 2.14GB file recounting from 0 This issue is fixed within the code of the AOSP ADB implementation by using 8 bytes instead of 4 (whitout any mention of it in the AOSP's own doccumentation 🙃) this works the same way as the before mentioned protocol for adb list the change is on step 5 instead of LIST we send LIS2, and instead of DENT the device will send back DENT2 and the received packet will be in a different sized format, heres an example listing the differences between LIST and LIS2 (notice the size in part 3. being the correct size of 9.9GB )
+NOTE: On files over the integer limit (around 2.14 GB) the 4 byte size will overflow resulting in a 2.14GB file recounting from 0 This issue is fixed within the code of the AOSP ADB implementation by using 8 bytes instead of 4 (whitout any mention of it in the AOSP's own doccumentation 🙃). This works the same way as the before mentioned protocol for the list command, except the change is on step 5, instead of LIST we send LIS2 and instead of DENT the device will send back DENT2. The received packet will be in a different sized format, here's an example listing the differences between LIST and LIS2 (notice the size in part 3. being the correct size of 9.9GB )
 
 ![host](/images/DENT2.png)
 
