@@ -317,7 +317,7 @@ NOTE: On files over the integer limit (around 2.14 GB) the 4 byte size will over
 
 ![host](/images/DENT2.png)
 
-After DEN2 there is 20 bytes of unknown data ( could be some extra file info that is undocumented ) after that step 2., 3., 4., are the same as the before mentioned list of file data except its 8 bytes long instead of 4 and theres an extra added 8 bytes (which is undoccumented ) parts 5., 6. are exactly the same.
+After DENT2 there is 20 bytes of unknown data ( could be some extra file info that is undocumented ) after that step 2., 3., 4., are the same as the before mentioned list of file data except its 8 bytes long instead of 4 and theres an extra added 8 bytes (which is undoccumented ) parts 5., 6. are exactly the same.
 
 ## ADB Install
 Install is just a combination of pushing an APK to /data/local/tmp and then running
