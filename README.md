@@ -313,11 +313,11 @@ NOTE: I've been in contact with someone at Google who passed on this message fro
 23. We send CLSE to device
 24. Device sends us CLSE
 
-NOTE: On files over the integer limit (around 2.14 GB) the 4 byte size will overflow resulting in a 2.14GB file recounting from 0 This issue is fixed within the code of the AOSP ADB implementation by using 8 bytes instead of 4 (whitout any mention of it in the AOSP's own doccumentation 🙃). This works the same way as the before mentioned protocol for the list command, except the change is on step 5, instead of LIST we send LIS2 and instead of DENT the device will send back DENT2. The received packet will be in a different sized format, here's an example listing the differences between LIST and LIS2 (notice the size in part 3. being the correct size of 9.9GB )
+NOTE: On files over the integer limit (around 2.14 GB) the 4 byte size will overflow resulting in a 2.14GB file recounting from 0 This issue is fixed within the code of the AOSP ADB implementation by using 8 bytes instead of 4 (whitout any mention of it in the AOSP's own doccumentation 🙃). This works the same way as the before mentioned protocol for the list command, except the change is on step 5, instead of LIST we send LIS2 and instead of DENT the device will send back DNT2. The received packet will be in a different sized format, here's an example listing the differences between LIST and LIS2 (notice the size in part 3. being the correct size of 9.9GB )
 
-![host](/images/DENT2.png)
+![host](/images/DNT2.png)
 
-After DENT2 there is 20 bytes of unknown data ( could be some extra file info that is undocumented ) after that step 2., 3., 4., are the same as the before mentioned list of file data except its 8 bytes long instead of 4 and theres an extra added 8 bytes (which is undoccumented ) parts 5., 6. are exactly the same.
+After DNT2 there is 20 bytes of unknown data ( could be some extra file info that is undocumented ) after that step 2., 3., 4., are the same as the before mentioned list of file data except its 8 bytes long instead of 4 and theres an extra added 8 bytes (which is undoccumented ) parts 5., 6. are exactly the same.
 
 ## ADB Install
 Install is just a combination of pushing an APK to /data/local/tmp and then running
