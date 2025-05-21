@@ -1,3 +1,5 @@
+**NOTE:** At this point it's been nearly 10 years since I did my little reverse engineering + documentation project. What's written here may be just as out of date as the AOSP documentation was back in ~2015/2016. If the AOSP documentation of ADB is now better please let me know so I can include a link to it. If not, please open PRs here if anything I have written is no longer true/up to date.
+
 # ADB Protocol Documentation
 ADB (Android Debug Bridge) and its protocol is what your computer uses to 
 communicate with Android devices. The protocol itself is an 
